@@ -184,7 +184,7 @@ zn_backend_create(struct wl_display *display)
 
   zn_log("using %s\n", self->drm.filename);
 
-  self->kms = zn_kms_create(self->drm.fd);
+  self->kms = zn_kms_create(self->drm.fd, self->drm.id, self->udev, display);
   if (self->kms == NULL) {
     zn_log("drm backend: failed to initialize kms\n");
     goto err_drm_device;

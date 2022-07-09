@@ -1,7 +1,10 @@
 #ifndef ZEN_UTIL_H
 #define ZEN_UTIL_H
 
+#include <assert.h>
+#include <errno.h>
 #include <stdarg.h>
+#include <stdbool.h>
 #include <stddef.h>
 #include <stdlib.h>
 
@@ -38,5 +41,33 @@ int zn_log(const char *fmt, ...) __attribute__((format(printf, 1, 2)));
 
 /* alternative logger api */
 int zn_vlog(const char *fmt, va_list ap);
+
+/* convert string to integer */
+static inline bool
+zn_safe_strtoint(const char *str, int32_t *value)
+{
+  long ret;
+  char *end;
+
+  assert(str != NULL);
+
+  errno = 0;
+  ret = strtol(str, &end, 10);
+  if (errno != 0)
+    return false;
+  else if (end == str || *end != '\0') {
+    errno = EINVAL;
+    return false;
+  }
+
+  if ((long)((int32_t)ret) != ret) {
+    errno = ERANGE;
+    return false;
+  }
+
+  *value = (int32_t)ret;
+
+  return true;
+}
 
 #endif  //  ZEN_UTIL_H
