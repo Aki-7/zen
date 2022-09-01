@@ -12,10 +12,17 @@ struct zn_openvr_immersive_backend {
 };
 
 static void
-zn_openvr_immersive_backend_vr_system_disconnected_handler(
+zn_openvr_immersive_backend_handle_vr_system_disconnected(
     struct zn_openvr_immersive_backend* self)
 {
   wl_signal_emit(&self->base.events.disconnected, NULL);
+}
+
+static void
+zn_openvr_immersive_backend_handle_vr_system_new_camera(
+    struct zn_openvr_immersive_backend* self, struct zn_camera* camera)
+{
+  wl_signal_emit(&self->base.events.disconnected, camera);
 }
 
 void
@@ -63,9 +70,13 @@ zn_immersive_backend_create(struct wl_event_loop* loop)
   }
 
   self->vr_system->callbacks.Disconnected = std::bind(
-      zn_openvr_immersive_backend_vr_system_disconnected_handler, self);
+      zn_openvr_immersive_backend_handle_vr_system_disconnected, self);
+  self->vr_system->callbacks.NewCamera =
+      std::bind(zn_openvr_immersive_backend_handle_vr_system_new_camera, self,
+          std::placeholders::_1);
 
   wl_signal_init(&self->base.events.disconnected);
+  wl_signal_init(&self->base.events.new_camera);
 
   return &self->base;
 

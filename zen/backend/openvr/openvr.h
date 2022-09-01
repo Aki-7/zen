@@ -1,6 +1,7 @@
 #ifndef ZEN_OPENVR_BACKEND_OPENVR_H
 #define ZEN_OPENVR_BACKEND_OPENVR_H
 
+#include <GL/glew.h>
 #include <wayland-server-core.h>
 
 #include <functional>
@@ -29,8 +30,8 @@ class OpenVr
    * be called in main thread after the polling finishes. non blocking */
   void RequestPoll(std::function<void(PollResult *result)> callback);
 
-  /** block until swapped */
-  // TODO: void Swap();
+  /** block until Submitted */
+  void Submit(GLuint left_texture, GLuint right_texture);
 
   /** Finish OpenVR session. The polling callback won't be called after this */
   void Disconnect();

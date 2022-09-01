@@ -18,6 +18,7 @@ _zen_desktop_srcs = [
   'input/seat.c',
 
   'scene/board.c',
+  'scene/camera.c',
   'scene/scene.c',
   'scene/screen.c',
   'scene/screen-layout.c',
@@ -32,6 +33,7 @@ _zen_desktop_srcs = [
 ]
 
 _zen_desktop_deps = [
+  dependency('glesv2'),
   m_dep,
   pixman_dep,
   wayland_server_dep,

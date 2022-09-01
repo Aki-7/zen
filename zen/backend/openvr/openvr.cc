@@ -67,6 +67,24 @@ OpenVr::RequestPoll(std::function<void(PollResult *result)> callback)
 }
 
 void
+OpenVr::Submit(GLuint left_texture, GLuint right_texture)
+{
+  vr::Texture_t left_vr_texture = {
+      (void *)(uintptr_t)left_texture,
+      vr::TextureType_OpenGL,
+      vr::ColorSpace_Gamma,
+  };
+  vr::VRCompositor()->Submit(vr::Eye_Left, &left_vr_texture);
+
+  vr::Texture_t right_vr_texture = {
+      (void *)(uintptr_t)right_texture,
+      vr::TextureType_OpenGL,
+      vr::ColorSpace_Gamma,
+  };
+  vr::VRCompositor()->Submit(vr::Eye_Right, &right_vr_texture);
+}
+
+void
 OpenVr::Disconnect()
 {
   connected_ = false;

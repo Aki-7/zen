@@ -2,6 +2,7 @@
 
 #include <stdio.h>
 #include <wayland-server.h>
+#include <wlr/render/egl.h>
 #include <wlr/render/glew.h>
 #include <zen-desktop-protocol.h>
 
@@ -162,6 +163,7 @@ struct zn_server *
 zn_server_create(struct wl_display *display)
 {
   struct zn_server *self;
+  struct wlr_egl *egl;
   char socket_name_candidate[16];
   char *xdg;
   int drm_fd = -1;
@@ -199,6 +201,9 @@ zn_server_create(struct wl_display *display)
     zn_error("Failed to create renderer");
     goto err_backend;
   }
+
+  egl = wlr_glew_renderer_get_egl(self->renderer);
+  wlr_egl_make_current(egl);
 
   if (wlr_renderer_init_wl_display(self->renderer, self->display) == false) {
     zn_error("Failed to initialize renderer with wl_display");

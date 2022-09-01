@@ -4,12 +4,14 @@
 #include <wayland-server-core.h>
 
 #include <functional>
+#include <memory>
 
+#include "camera.h"
 #include "openvr.h"
 #include "zen-common.h"
+#include "zen/scene/camera.h"
 
 namespace zen {
-
 class VrSystem
 {
  public:
@@ -24,6 +26,7 @@ class VrSystem
 
   struct {
     std::function<void()> Disconnected;
+    std::function<void(struct zn_camera *camera)> NewCamera;
   } callbacks;
 
  private:
@@ -31,6 +34,9 @@ class VrSystem
 
   OpenVr openvr_;
   bool is_repaint_loop_running_ = false;
+
+  std::unique_ptr<Camera> left_eye_;
+  std::unique_ptr<Camera> right_eye_;
 };
 
 }  // namespace zen

@@ -10,6 +10,7 @@ extern "C" {
 struct zn_immersive_backend {
   struct {
     struct wl_signal disconnected;
+    struct wl_signal new_camera;  // (struct zn_camera *)
   } events;
 };
 

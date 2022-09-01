@@ -6,22 +6,36 @@ project(
   default_options: [ 'warning_level=3', 'werror=true', 'optimization=2', 'c_std=gnu11', 'cpp_std=gnu++14' ],
 )
 
-cc = meson.get_compiler('c')
+c_compiler = meson.get_compiler('c')
+cpp_compiler = meson.get_compiler('cpp')
 
-global_args = []
-global_args_maybe = [
+global_c_args = []
+global_c_args_maybe = [
   '-D_GNU_SOURCE',
   '-DWLR_USE_UNSTABLE',
   '-fvisibility=hidden',
   '-Wstrict-prototypes',
 ]
 
-foreach arg : global_args_maybe
-  if cc.has_argument(arg)
-    global_args += arg
+foreach arg : global_c_args_maybe
+  if c_compiler.has_argument(arg)
+    global_c_args += arg
   endif
 endforeach
-add_project_arguments(global_args, language: 'c')
+
+global_cpp_args = []
+global_cpp_args_maybe = [
+  '-DWLR_USE_UNSTABLE',
+]
+
+foreach arg : global_cpp_args_maybe
+  if cpp_compiler.has_argument(arg)
+    global_cpp_args += arg
+  endif
+endforeach
+
+add_project_arguments(global_c_args, language: 'c')
+add_project_arguments(global_cpp_args, language: 'cpp')
 
 # Compute the relative path from build_root to source_root
 
@@ -57,7 +71,7 @@ relative_source_dir = join_paths(relative_source_parts) + '/'
 
 # If relative_source_dir is used as the prefix of preprocessor macros such as __FILE__,
 # Replace that with an empty string.
-if cc.has_argument('-fmacro-prefix-map=/prefix/to/hide=')
+if c_compiler.has_argument('-fmacro-prefix-map=/prefix/to/hide=')
 	add_project_arguments(
 		'-fmacro-prefix-map=@0@='.format(relative_source_dir),
 		language: 'c',
@@ -68,15 +82,17 @@ datadir = get_option('datadir')
 
 # generic version requirements
 
+cglm_req = '>= 0.8.4'
 openvr_req = '>= 1.12.5'
 wayland_protocols_req = '>= 1.24'
 wayland_server_req = '>= 1.18.0'
 wlroots_req = ['>= 0.15', '< 0.16']
-wlr_glew_renderer_req = wlroots_req
+wlr_glew_renderer_req = '>= 0.15.0-dev.1'
 
 # dependencies
 
-m_dep = cc.find_library('m')
+cglm_dep = dependency('cglm', version: cglm_req)
+m_dep = c_compiler.find_library('m')
 openvr_dep = dependency('openvr', version: openvr_req)
 pixman_dep = dependency('pixman-1')
 wayland_protocols_dep = dependency('wayland-protocols', version: wayland_protocols_req)

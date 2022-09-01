@@ -1,4 +1,5 @@
 _zen_openvr_immersive_backend_srcs =[
+  'camera.cc',
   'immersive-backend.cc',
   'openvr.cc',
   'vr-system.cc',
@@ -7,6 +8,7 @@ _zen_openvr_immersive_backend_srcs =[
 _zen_openvr_immersive_backend_deps =[
   openvr_dep,
   wayland_server_dep,
+  wlroots_dep,
   zen_common_dep,
 ]
 
