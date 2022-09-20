@@ -193,6 +193,8 @@ main(int argc, char *argv[])
 
   exit_status = zn_server_run(server);
 
+  wl_display_destroy_clients(display);
+
 err_server:
   zn_server_destroy(server);
   server = NULL;
@@ -201,7 +203,6 @@ err_signal:
   for (i = ARRAY_LENGTH(signal_sources) - 1; i >= 0; i--)
     if (signal_sources[i]) wl_event_source_remove(signal_sources[i]);
 
-  wl_display_destroy_clients(display);
   wl_display_destroy(display);
 
 err:
