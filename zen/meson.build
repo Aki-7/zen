@@ -20,6 +20,12 @@ _zen_desktop_srcs = [
   'xdg-toplevel-view.c',
   'xwayland-view.c',
 
+  'immersive/remote/display-system.c',
+  'immersive/remote/object/board.c',
+  'immersive/remote/object/ray.c',
+  'immersive/remote/renderer.c',
+  'immersive/remote/scene.c',
+
   'input/cursor-grab-move.c',
   'input/cursor-grab-resize.c',
   'input/input-device.c',
@@ -29,6 +35,7 @@ _zen_desktop_srcs = [
   'input/seat.c',
 
   'scene/board.c',
+  'scene/ray.c',
   'scene/scene.c',
   'scene/screen.c',
   'scene/screen-layout.c',
@@ -45,6 +52,7 @@ _zen_desktop_srcs = [
 
 _zen_desktop_deps = [
   cairo_dep,
+  cglm_dep,
   m_dep,
   pixman_dep,
   toml_dep,
@@ -53,6 +61,7 @@ _zen_desktop_deps = [
   wlr_glew_renderer_dep,
   xkbcommon_dep,
   zen_common_dep,
+  znr_dep,
 ]
 
 executable(

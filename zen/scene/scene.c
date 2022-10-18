@@ -51,6 +51,24 @@ zn_scene_move_board_binding_handler(
   }
 }
 
+static struct zn_board*
+zn_scene_new_board(struct zn_scene* self)
+{
+  struct zn_board* board;
+
+  board = zn_board_create();
+  if (board == NULL) {
+    zn_error("Failed to create a new board");
+    return NULL;
+  }
+
+  wl_list_insert(self->board_list.prev, &board->link);
+
+  wl_signal_emit(&self->events.new_board, board);
+
+  return board;
+}
+
 static void
 zn_scene_new_board_binding_handler(uint32_t time_msec, uint32_t key, void* data)
 {
@@ -62,14 +80,31 @@ zn_scene_new_board_binding_handler(uint32_t time_msec, uint32_t key, void* data)
 
   if (screen == NULL) return;
 
-  board = zn_board_create(self);
+  board = zn_scene_new_board(self);
   if (board == NULL) {
-    zn_error("Failed to creaet a new board");
     return;
   }
 
   zn_board_assign_to_screen(board, screen);
   zn_screen_set_current_board(screen, board);
+}
+
+struct zn_ray*
+zn_scene_ensure_ray(struct zn_scene* self)
+{
+  if (self->ray == NULL) {
+    self->ray = zn_ray_create();
+    wl_signal_emit(&self->events.new_ray, NULL);
+  }
+
+  return self->ray;
+}
+
+void
+zn_scene_destroy_ray(struct zn_scene* self)
+{
+  if (self->ray) zn_ray_destroy(self->ray);
+  self->ray = NULL;
 }
 
 void
@@ -127,7 +162,7 @@ zn_scene_ensure_dangling_board(struct zn_scene* self)
     }
   }
 
-  return zn_board_create(self);
+  return zn_scene_new_board(self);
 }
 
 /** Keep this idempotent. */
@@ -235,20 +270,26 @@ zn_scene_create(struct zn_config* config)
 
   wl_list_init(&self->board_list);
 
-  board = zn_board_create(self);
-  if (board == NULL) {
-    zn_error("Failed to create a initial board");
-    goto err_screen_layout;
-  }
-
   zn_scene_setup_background(self, config->bg_image_file);
 
   self->unmap_focused_view_listener.notify = zn_scene_handle_unmap_focused_view;
   wl_list_init(&self->unmap_focused_view_listener.link);
 
+  wl_signal_init(&self->events.new_board);
+  wl_signal_init(&self->events.new_ray);
+
+  board = zn_scene_new_board(self);
+  if (board == NULL) {
+    goto err_bg_texture;
+  }
+
   return self;
 
-err_screen_layout:
+err_bg_texture:
+  if (self->bg_texture != NULL) {
+    wlr_texture_destroy(self->bg_texture);
+  }
+
   zn_screen_layout_destroy(self->screen_layout);
 
 err_free:
@@ -277,6 +318,8 @@ zn_scene_destroy(struct zn_scene* self)
 
   zn_screen_layout_destroy(self->screen_layout);
 
+  wl_list_remove(&self->events.new_board.listener_list);
+  wl_list_remove(&self->events.new_ray.listener_list);
   wl_list_remove(&self->unmap_focused_view_listener.link);
 
   free(self);
