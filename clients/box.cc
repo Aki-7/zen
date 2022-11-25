@@ -20,6 +20,7 @@
 #include "gl-buffer.h"
 #include "gl-program.h"
 #include "gl-shader.h"
+#include "gl-texture.h"
 #include "gl-vertex-array.h"
 #include "rendering-unit.h"
 #include "shm-pool.h"
@@ -116,11 +117,14 @@ class Box final : public Bounded
     pool_ = CreateShmPool(app_, vertex_buffer_fd_, vertex_buffer_size);
     if (!pool_) return false;
 
-    buffer_ = CreateBuffer(pool_.get(), 0, vertex_buffer_size);
-    if (!buffer_) return false;
+    vertex_buffer_ = CreateBuffer(pool_.get(), 0, vertex_buffer_size);
+    if (!vertex_buffer_) return false;
 
-    gl_buffer_ = CreateGlBuffer(app_);
-    if (!gl_buffer_) return false;
+    gl_vertex_buffer_ = CreateGlBuffer(app_);
+    if (!gl_vertex_buffer_) return false;
+
+    texture_ = CreateGlTexture(app_);
+    if (!texture_) return false;
 
     vertex_array_ = CreateGlVertexArray(app_);
     if (!vertex_array_) return false;
@@ -140,14 +144,16 @@ class Box final : public Bounded
     program_->AttachShader(fragment_shader_.get());
     program_->Link();
 
-    gl_buffer_->Data(GL_ARRAY_BUFFER, buffer_.get(), GL_STATIC_DRAW);
+    gl_vertex_buffer_->Data(
+        GL_ARRAY_BUFFER, vertex_buffer_.get(), GL_STATIC_DRAW);
 
     vertex_array_->Enable(0);
     vertex_array_->VertexAttribPointer(
-        0, 3, GL_FLOAT, GL_FALSE, 0, 0, gl_buffer_.get());
+        0, 3, GL_FLOAT, GL_FALSE, 0, 0, gl_vertex_buffer_.get());
 
     technique_->Bind(vertex_array_.get());
     technique_->Bind(program_.get());
+    technique_->Bind(0, "", texture_.get(), GL_TEXTURE_2D);
 
     technique_->DrawArrays(GL_LINES, 0, vertices_.size());
 
@@ -161,12 +167,13 @@ class Box final : public Bounded
   std::vector<Vertex> vertices_;
   int vertex_buffer_fd_;
   std::unique_ptr<ShmPool> pool_;
-  std::unique_ptr<Buffer> buffer_;
-  std::unique_ptr<GlBuffer> gl_buffer_;
+  std::unique_ptr<Buffer> vertex_buffer_;
+  std::unique_ptr<GlBuffer> gl_vertex_buffer_;
   std::unique_ptr<GlVertexArray> vertex_array_;
   std::unique_ptr<GlShader> vertex_shader_;
   std::unique_ptr<GlShader> fragment_shader_;
   std::unique_ptr<GlProgram> program_;
+  std::unique_ptr<GlTexture> texture_;
 
   float animation_seed_;  // 0 to 1
   glm::vec3 half_size_;
