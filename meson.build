@@ -135,9 +135,6 @@ vr_icon = join_paths(get_option('prefix'), icon_install_dir, 'vr.svg')
 cdata.set_quoted('POWER_BUTTON_ICON', power_button_icon)
 cdata.set_quoted('VR_ICON', vr_icon)
 
-blender_launcher_icon = join_paths(get_option('prefix'), icon_install_dir, 'blender-launcher.png')
-cdata.set_quoted('BLENDER_LAUNCHER_ICON', blender_launcher_icon)
-
 chrome_launcher_icon = join_paths(get_option('prefix'), icon_install_dir, 'chrome-launcher.png')
 cdata.set_quoted('CHROME_LAUNCHER_ICON', chrome_launcher_icon)
 
