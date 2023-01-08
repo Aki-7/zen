@@ -55,8 +55,9 @@ zn_vr_menu_headset_connect_button_set_frame(
 
   struct zn_server *server = zn_server_get_singleton();
   struct zn_remote *remote = server->remote;
+
   node->frame.y =
-      screen_height - menu_bar_height - 20. -
+      screen_height - menu_bar_height - tip_height - vr_how_to_connect_height -
       (wl_list_length(&remote->peer_list) - self->idx) *
           vr_menu_headset_height +
       (vr_menu_headset_height - vr_menu_headset_connect_button_height) / 2;

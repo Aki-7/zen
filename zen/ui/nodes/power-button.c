@@ -68,10 +68,10 @@ zn_power_button_render(struct zigzag_node *node, cairo_t *cr)
 
   sprintf(output, "%02d:%02d", time_info->tm_hour, time_info->tm_min);
 
-  double padding = 6.;
-  cairo_set_font_size(cr, 11);
-  zigzag_cairo_draw_text(cr, output, padding, node->frame.height / 2,
-      ZIGZAG_ANCHOR_LEFT, ZIGZAG_ANCHOR_CENTER);
+  double padding = 15.;
+  cairo_set_font_size(cr, 13);
+  zigzag_cairo_draw_text(cr, output, node->frame.width / 2 - 10.,
+      node->frame.height / 2, ZIGZAG_ANCHOR_CENTER, ZIGZAG_ANCHOR_CENTER);
 
   struct zn_power_button *power_button = node->user_data;
 

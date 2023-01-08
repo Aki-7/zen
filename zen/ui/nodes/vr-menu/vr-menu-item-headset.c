@@ -47,7 +47,7 @@ zn_vr_menu_item_headset_render(struct zigzag_node *node, cairo_t *cr)
       node->frame.height / 2, ZIGZAG_ANCHOR_LEFT, ZIGZAG_ANCHOR_CENTER);
 
   cairo_set_source_rgba(cr, 0., 0., 0., 0.5);
-  cairo_set_font_size(cr, 12);
+  cairo_set_font_size(cr, 13);
   struct zn_peer *peer = self->peer;
   zigzag_cairo_draw_text(cr, peer->host, icon_x * 2 + vr_icon_width + 50.,
       node->frame.height / 2, ZIGZAG_ANCHOR_LEFT, ZIGZAG_ANCHOR_CENTER);
@@ -65,7 +65,7 @@ zn_vr_menu_item_headset_set_frame(
   struct zn_server *server = zn_server_get_singleton();
   struct zn_remote *remote = server->remote;
   node->frame.y =
-      screen_height - menu_bar_height - 20. -
+      screen_height - menu_bar_height - tip_height - vr_how_to_connect_height -
       (wl_list_length(&remote->peer_list) - self->idx) * vr_menu_headset_height;
   node->frame.width = vr_menu_headset_width;
   node->frame.height = vr_menu_headset_height;

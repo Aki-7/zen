@@ -64,27 +64,40 @@ zn_vr_menu_render(struct zigzag_node *self, cairo_t *cr)
   cairo_set_source_rgba(cr, 0., 0., 0., 0.12);
   cairo_stroke(cr);
 
-  double padding_height = 10.;
+  double padding_height = vr_menu_bubble_padding_height;
   double padding_width = (vr_menu_bubble_width - vr_menu_headset_width) / 2;
-  zigzag_cairo_draw_rounded_rectangle(cr, padding_width, padding_height,
-      vr_menu_headset_width, self->frame.height - padding_height * 3, 5.);
-  cairo_set_source_rgba(cr, 0., 0., 0., 0.5);
-  cairo_stroke(cr);
-
-  cairo_set_font_size(cr, 13);
-  cairo_set_source_rgb(cr, .5, .5, .5);
-  zigzag_cairo_draw_text(cr, "Headsets", padding_width * 2, padding_height * 2,
-      ZIGZAG_ANCHOR_LEFT, ZIGZAG_ANCHOR_TOP);
 
   struct zn_server *server = zn_server_get_singleton();
   struct zn_remote *remote = server->remote;
+  cairo_set_font_size(cr, 13);
+  double content_height;
   if (wl_list_empty(&remote->peer_list)) {
     cairo_set_source_rgb(cr, 0., 0., 0.);
     zigzag_cairo_draw_text(cr, "No headsets found", vr_menu_bubble_width / 2,
-        vr_menu_to_headsets_list +
-            (self->frame.height - vr_menu_to_headsets_list) / 2,
+        vr_menu_bubble_padding_height + vr_headsets_heading_height +
+            no_headsets_text_height / 2 - 5.,
         ZIGZAG_ANCHOR_CENTER, ZIGZAG_ANCHOR_CENTER);
+    content_height = no_headsets_text_height;
+  } else {
+    content_height =
+        wl_list_length(&remote->peer_list) * vr_menu_headset_height;
   }
+
+  cairo_set_source_rgb(cr, .5, .5, .5);
+  zigzag_cairo_draw_text(cr, "Headsets", padding_width + 15,
+      vr_menu_bubble_padding_height + vr_headsets_heading_height / 2,
+      ZIGZAG_ANCHOR_LEFT, ZIGZAG_ANCHOR_CENTER);
+
+  zigzag_cairo_draw_rounded_rectangle(cr, padding_width, padding_height,
+      vr_menu_headset_width, vr_headsets_heading_height + content_height, 5.);
+  cairo_set_source_rgba(cr, 0., 0., 0., 0.5);
+  cairo_stroke(cr);
+
+  cairo_set_source_rgb(cr, .35, .39, .51);
+  zigzag_cairo_draw_text(cr, "How can I connect my headset?", padding_width,
+      vr_menu_bubble_padding_height + vr_headsets_heading_height +
+          content_height + vr_how_to_connect_height / 2,
+      ZIGZAG_ANCHOR_LEFT, ZIGZAG_ANCHOR_CENTER);
 
   return true;
 }
@@ -99,11 +112,14 @@ zn_vr_menu_set_frame(
   struct zn_server *server = zn_server_get_singleton();
   struct zn_remote *remote = server->remote;
   if (wl_list_empty(&remote->peer_list)) {
-    self->frame.height = vr_menu_bubble_height_default;
+    self->frame.height = tip_height + vr_how_to_connect_height +
+                         no_headsets_text_height + vr_headsets_heading_height +
+                         vr_menu_bubble_padding_height;
   } else {
     self->frame.height =
+        tip_height + vr_how_to_connect_height +
         wl_list_length(&remote->peer_list) * vr_menu_headset_height +
-        vr_menu_to_headsets_list + 20.;
+        vr_headsets_heading_height;
   }
   self->frame.y = screen_height - self->frame.height - menu_bar_height;
 }

@@ -42,9 +42,9 @@ zn_vr_button_render(struct zigzag_node *node, cairo_t *cr)
   cairo_set_source_rgb(cr, 0.07, 0.12, 0.30);
   cairo_stroke(cr);
 
-  double padding = 6.;
-  cairo_set_font_size(cr, 11);
-  zigzag_cairo_draw_text(cr, "VR", node->frame.width / 2,
+  double padding = 15.;
+  cairo_set_font_size(cr, 13);
+  zigzag_cairo_draw_text(cr, "VR", node->frame.width / 2 + 5.,
       node->frame.height / 2, ZIGZAG_ANCHOR_LEFT, ZIGZAG_ANCHOR_CENTER);
 
   double icon_x = padding;

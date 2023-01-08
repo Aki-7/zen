@@ -21,7 +21,7 @@ zn_menu_bar_on_click(struct zigzag_node *node, double x, double y)
 static bool
 zn_menu_bar_render(struct zigzag_node *node, cairo_t *cr)
 {
-  cairo_set_source_rgba(cr, 1.0, 1.0, 1.0, 0.1);
+  cairo_set_source_rgba(cr, 1.0, 1.0, 1.0, 0.3);
   cairo_paint(cr);
   cairo_set_source_rgba(cr, 0.0, 0.0, 0.0, 0.88);
   cairo_set_line_width(cr, 0.25);
