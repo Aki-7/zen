@@ -90,7 +90,9 @@ zn_power_button_set_frame(
 {
   double power_button_height = menu_bar_height - power_button_margin_height * 2;
 
-  node->frame.x = screen_width - power_button_width - power_button_margin_width;
+  node->frame.x = screen_width - power_button_width -
+                  power_button_margin_width - vr_button_width -
+                  vr_button_margin_width;
   node->frame.y =
       screen_height - power_button_height - power_button_margin_height;
   node->frame.width = power_button_width;
@@ -124,10 +126,10 @@ zn_power_button_create(
   }
   self->zigzag_node = zigzag_node;
 
-  struct zn_power_menu *power_menu =
-      zn_power_menu_create(zigzag_layout, renderer,
-          zigzag_layout->screen_width - power_button_margin_width -
-              power_button_width / 2);
+  struct zn_power_menu *power_menu = zn_power_menu_create(zigzag_layout,
+      renderer,
+      zigzag_layout->screen_width - vr_button_margin_width - vr_button_width -
+          power_button_margin_width - power_button_width / 2);
   if (power_menu == NULL) {
     zn_error("Failed to create the power_menu");
     goto err_zigzag_node;
