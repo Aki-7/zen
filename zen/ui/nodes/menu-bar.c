@@ -4,17 +4,12 @@
 #include <zen-common.h>
 #include <zigzag.h>
 
+#include "zen/favorite-app.h"
 #include "zen/screen/output.h"
+#include "zen/server.h"
 #include "zen/ui/layout-constants.h"
 #include "zen/ui/nodes/app-launcher.h"
 #include "zen/ui/nodes/power-button.h"
-
-static const struct zn_app_launcher_data default_launchers[2] = {
-    {.icon_path = CHROME_LAUNCHER_ICON,
-        .command = "google-chrome-stable --enable-features=UseOzonePlatform "
-                   "--ozone-platform=wayland --disable-gpu"},
-    {.icon_path = TERMINAL_LAUNCHER_ICON, .command = "weston-terminal"},
-};
 
 static void
 zn_menu_bar_on_click(struct zigzag_node *node, double x, double y)
@@ -85,12 +80,16 @@ zn_menu_bar_create(
       &self->zigzag_node->node_list, &power_button->zigzag_node->link);
 
   struct zn_app_launcher *launcher;
+  struct zn_server *server = zn_server_get_singleton();
   wl_list_init(&self->launcher_list);
-  for (uint64_t i = 0; i < ARRAY_LENGTH(default_launchers); i++) {
+  for (int i = 0; i < server->config->num_favorite_apps; i++) {
+    if (server->config->favorite_apps[i].disable_2d) {
+      continue;
+    }
     launcher = zn_app_launcher_create(
-        zigzag_layout, renderer, &default_launchers[i], i);
+        zigzag_layout, renderer, &server->config->favorite_apps[i], i);
     if (launcher == NULL) {
-      zn_error("Failed to create the launcher %ld", i);
+      zn_error("Failed to create the launcher %d", i);
       goto err_launcher_list;
     }
     wl_list_insert(&self->launcher_list, &launcher->link);

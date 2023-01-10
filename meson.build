@@ -125,8 +125,6 @@ endif
 icon_files = files(
   'assets/icon/power-button.svg',
   'assets/icon/vr.svg',
-  'assets/icon/chrome-launcher.png',
-  'assets/icon/terminal-launcher.png',
 )
 icon_install_dir = join_paths(datadir, 'zen')
 install_data(icon_files, install_dir: icon_install_dir)
@@ -135,12 +133,6 @@ power_button_icon = join_paths(get_option('prefix'), icon_install_dir, 'power-bu
 vr_icon = join_paths(get_option('prefix'), icon_install_dir, 'vr.svg')
 cdata.set_quoted('POWER_BUTTON_ICON', power_button_icon)
 cdata.set_quoted('VR_ICON', vr_icon)
-
-chrome_launcher_icon = join_paths(get_option('prefix'), icon_install_dir, 'chrome-launcher.png')
-cdata.set_quoted('CHROME_LAUNCHER_ICON', chrome_launcher_icon)
-
-terminal_launcher_icon = join_paths(get_option('prefix'), icon_install_dir, 'terminal-launcher.png')
-cdata.set_quoted('TERMINAL_LAUNCHER_ICON', terminal_launcher_icon)
 
 if get_option('default-wallpaper')
   wallpaper_files = files(
