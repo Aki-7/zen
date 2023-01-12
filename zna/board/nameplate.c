@@ -21,8 +21,8 @@ zna_board_nameplate_unit_update_texture(
 {
   UNUSED(board);
   // FIXME:
-  int width = NAMEPLATE_PIXEL_PER_METER * 0.4;
-  int height = NAMEPLATE_PIXEL_PER_METER * 0.04;
+  int width = NAMEPLATE_PIXEL_PER_METER * 0.29;
+  int height = NAMEPLATE_PIXEL_PER_METER * 0.03;
   // int width = NAMEPLATE_PIXEL_PER_METER * board->nameplate->geometry.width;
   // int height = NAMEPLATE_PIXEL_PER_METER * board->nameplate->geometry.height;
 
@@ -42,7 +42,7 @@ zna_board_nameplate_unit_update_texture(
 
   vec3 navy = ZN_NAVY_VEC3_INIT;
   cairo_set_source_rgba(cr, navy[0], navy[1], navy[2], 1.);
-  zn_cairo_draw_rounded_rectangle(cr, 0, 0, width, height, 5.);
+  zn_cairo_draw_rounded_rectangle(cr, 0, 0, width, height, 25.);
   cairo_fill(cr);
   cairo_set_font_face(cr, zn_font_face_get_cairo_font_face(ZN_FONT_REGULAR));
   cairo_set_source_rgba(cr, 1., 1., 1., 1.);
@@ -76,7 +76,7 @@ zna_board_nameplate_unit_commit(struct zna_board_nameplate_unit *self,
     // FIXME:
     glm_mat4_copy(board->geometry.transform, local_model);
     glm_translate_y(local_model, -0.01);
-    glm_scale(local_model, (vec3){0.4, 0.04, 1});
+    glm_scale(local_model, (vec3){0.29, 0.03, 1});
 
     znr_gl_base_technique_gl_uniform_matrix(self->base_unit->technique, 0,
         "local_model", 4, 4, 1, false, local_model[0]);
