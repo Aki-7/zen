@@ -23,7 +23,8 @@ struct zn_scene {
   struct wl_listener display_system_changed_listener;
 
   struct {
-    struct wl_signal new_board;  // (struct zn_board*)
+    struct wl_signal new_board;               // (struct zn_board*)
+    struct wl_signal board_mapped_to_screen;  // (struct zn_board*)
   } events;
 
   struct wlr_texture *wallpaper;  // nullable
@@ -37,6 +38,8 @@ void zn_scene_set_focused_view(struct zn_scene *self, struct zn_view *view);
 
 void zn_scene_initialize_boards(
     struct zn_scene *self, int64_t board_initial_count);
+
+void zn_scene_setup_keybindings(struct zn_scene *self);
 
 struct zn_scene *zn_scene_create(void);
 

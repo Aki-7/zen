@@ -1,5 +1,6 @@
 #include "zen/scene.h"
 
+#include <linux/input.h>
 #include <zen-common.h>
 
 #include "zen/board.h"
@@ -10,6 +11,23 @@
 #include "zen/server.h"
 #include "zen/view.h"
 #include "zen/wlr/texture.h"
+
+static void
+zn_scene_handle_switch_board_binding(
+    uint32_t time_msec, uint32_t key, void *data)
+{
+  UNUSED(time_msec);
+  struct zn_scene *scene = data;
+  struct zn_screen *screen = scene->cursor->board->screen;
+
+  if (screen == NULL) return;
+
+  if (key == KEY_RIGHT) {
+    zn_screen_switch_to_next_board(screen);
+  } else if (key == KEY_LEFT) {
+    zn_screen_switch_to_prev_board(screen);
+  }
+}
 
 static void
 zn_scene_handle_focused_view_destroy(struct wl_listener *listener, void *data)
@@ -70,12 +88,14 @@ zn_scene_new_screen(struct zn_scene *self, struct zn_screen *screen)
         board = board_iter;
       }
       zn_board_set_screen(board_iter, screen);
+      wl_signal_emit(&self->events.board_mapped_to_screen, board_iter);
     }
   }
 
   if (wl_list_empty(&screen->board_list)) {
     board = zn_scene_create_new_board(self);
     zn_board_set_screen(board, screen);
+    wl_signal_emit(&self->events.board_mapped_to_screen, board);
   }
 
   zn_screen_set_current_board(screen, board);
@@ -178,6 +198,19 @@ zn_scene_initialize_boards(struct zn_scene *self, int64_t board_initial_count)
   zn_shell_rearrange_board(server->shell);
 }
 
+void
+zn_scene_setup_keybindings(struct zn_scene *self)
+{
+  struct zn_server *server = zn_server_get_singleton();
+  zn_input_manager_add_key_binding(server->input_manager, KEY_RIGHT,
+      WLR_MODIFIER_SHIFT | WLR_MODIFIER_LOGO,
+      zn_scene_handle_switch_board_binding, self);
+
+  zn_input_manager_add_key_binding(server->input_manager, KEY_LEFT,
+      WLR_MODIFIER_SHIFT | WLR_MODIFIER_LOGO,
+      zn_scene_handle_switch_board_binding, self);
+}
+
 struct zn_scene *
 zn_scene_create(void)
 {
@@ -222,6 +255,7 @@ zn_scene_create(void)
   wl_list_init(&self->board_list);
   wl_list_init(&self->view_list);
   wl_signal_init(&self->events.new_board);
+  wl_signal_init(&self->events.board_mapped_to_screen);
 
   return self;
 
@@ -254,6 +288,7 @@ zn_scene_destroy(struct zn_scene *self)
 {
   wl_list_remove(&self->focused_view_destroy_listener.link);
   wl_list_remove(&self->events.new_board.listener_list);
+  wl_list_remove(&self->events.board_mapped_to_screen.listener_list);
   wl_list_remove(&self->display_system_changed_listener.link);
   wl_list_remove(&self->view_list);
   if (self->wallpaper != NULL) wlr_texture_destroy(self->wallpaper);
