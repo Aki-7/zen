@@ -8,7 +8,8 @@ struct zna_board_plane_unit {
 };
 
 void zna_board_plane_unit_commit(struct zna_board_plane_unit *self,
-    struct zn_board *board, struct znr_virtual_object *virtual_object);
+    struct zn_board *board, struct znr_virtual_object *virtual_object,
+    uint32_t damage);
 
 void zna_board_plane_unit_setup_renderer_objects(
     struct zna_board_plane_unit *self, struct znr_dispatcher *dispatcher,

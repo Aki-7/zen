@@ -47,7 +47,7 @@ zns_board_move_ray_grab_motion_relative(struct zn_ray_grab *grab_base,
   zns_seat_capsule_move_board(
       seat_capsule, self->zns_board, next_board_azimuthal, next_board_polar);
 
-  zna_board_commit(zn_board->appearance);
+  zna_board_commit(zn_board->appearance, ZNA_BOARD_DAMAGE_GEOMETRY);
 
   {  // move ray
     vec3 next_tip, next_origin, next_direction;

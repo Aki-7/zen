@@ -7,6 +7,7 @@
 
 #include "zen/cursor.h"
 #include "zen/server.h"
+#include "zns/board-nameplate.h"
 #include "zns/ray-grab/board-move.h"
 #include "zns/shell.h"
 
@@ -197,10 +198,17 @@ zns_board_create(struct zn_board *zn_board)
   }
 
   self->zn_board = zn_board;
+
   self->node = zns_node_create(server->shell->root, self, &node_implementation);
   if (self->node == NULL) {
     zn_error("Failed to create zns_node");
     goto err_free;
+  }
+
+  self->nameplate = zns_board_nameplate_create(self);
+  if (self->nameplate == NULL) {
+    zn_error("Failed to create a board nameplate");
+    goto err_node;
   }
 
   self->zn_board_destroy_listener.notify = zns_board_handle_zn_board_destroy;
@@ -210,6 +218,9 @@ zns_board_create(struct zn_board *zn_board)
   wl_list_init(&self->seat_capsule_link);
 
   return self;
+
+err_node:
+  zns_node_destroy(self->node);
 
 err_free:
   free(self);
@@ -225,6 +236,7 @@ zns_board_destroy(struct zns_board *self)
 
   wl_list_remove(&self->zn_board_destroy_listener.link);
   wl_list_remove(&self->seat_capsule_link);
+  zns_board_nameplate_destroy(self->nameplate);
   zns_node_destroy(self->node);
   free(self);
 }

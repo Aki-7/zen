@@ -5,6 +5,7 @@
 #include <zen-common.h>
 #include <zgnr/bounded.h>
 
+#include "zen/appearance/board.h"
 #include "zen/board.h"
 #include "zen/cursor.h"
 #include "zen/scene.h"
@@ -167,6 +168,8 @@ zn_shell_handle_new_board(struct wl_listener *listener, void *data)
   struct zns_board *zns_board = zns_board_create(zn_board);
 
   zns_seat_capsule_add_board(self->seat_capsule, zns_board);
+
+  zna_board_commit(zn_board->appearance, ZNA_BOARD_DAMAGE_GEOMETRY);
 }
 
 static void

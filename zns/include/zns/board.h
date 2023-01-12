@@ -8,6 +8,8 @@ struct zns_board {
 
   struct zns_node *node;
 
+  struct zns_board_nameplate *nameplate;
+
   float seat_capsule_azimuthal;
   float seat_capsule_polar;
 

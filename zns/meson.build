@@ -2,6 +2,7 @@ zen_shell_inc = include_directories('include')
 
 _zen_shell_srcs = [
   'src/board.c',
+  'src/board-nameplate.c',
   'src/bounded.c',
   'src/bounded-nameplate.c',
   'src/expansive.c',

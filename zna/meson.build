@@ -10,6 +10,7 @@ _zen_appearance_srcs = [
   'view.c',
 
   'board.c',
+  'board/nameplate.c',
   'board/plane-unit.c',
 
   'ray.c',
