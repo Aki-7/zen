@@ -4,6 +4,7 @@
 #include <zen-common.h>
 #include <zgnr/intersection.h>
 
+#include "zen/appearance/board.h"
 #include "zen/server.h"
 #include "zns/board.h"
 #include "zns/shell.h"
@@ -58,16 +59,23 @@ zns_board_nameplate_node_ray_motion(
 static bool
 zns_board_nameplate_node_ray_enter(void *user_data, vec3 origin, vec3 direction)
 {
-  UNUSED(user_data);
   UNUSED(origin);
   UNUSED(direction);
+
+  struct zns_board_nameplate *self = user_data;
+  self->board->zn_board->nameplate_hovering = true;
+  zna_board_commit(
+      self->board->zn_board->appearance, ZNA_BOARD_DAMAGE_NAMEPLATE_TEXTURE);
   return true;
 }
 
 static bool
 zns_board_nameplate_node_ray_leave(void *user_data)
 {
-  UNUSED(user_data);
+  struct zns_board_nameplate *self = user_data;
+  self->board->zn_board->nameplate_hovering = false;
+  zna_board_commit(
+      self->board->zn_board->appearance, ZNA_BOARD_DAMAGE_NAMEPLATE_TEXTURE);
   return true;
 }
 

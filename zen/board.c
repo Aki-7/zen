@@ -174,6 +174,8 @@ zn_board_create(void)
   self->screen = NULL;
   wl_list_init(&self->view_list);
 
+  self->nameplate_hovering = false;
+
   self->screen_destroy_listener.notify = zn_board_handle_screen_destroy;
   wl_list_init(&self->screen_destroy_listener.link);
 

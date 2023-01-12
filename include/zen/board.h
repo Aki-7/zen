@@ -20,6 +20,8 @@ struct zn_board {
   // nonnull when there are one or more screens in the scene
   struct zn_screen *screen;
 
+  bool nameplate_hovering;
+
   struct wl_list view_list;  // zn_view::board_link, sorted from back to front
 
   struct {

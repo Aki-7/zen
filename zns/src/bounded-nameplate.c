@@ -6,6 +6,7 @@
 
 #include "zen/server.h"
 #include "zen/virtual-object.h"
+#include "zns/appearance/bounded.h"
 #include "zns/bounded.h"
 #include "zns/shell.h"
 
@@ -60,16 +61,27 @@ static bool
 zns_bounded_nameplate_node_ray_enter(
     void *user_data, vec3 origin, vec3 direction)
 {
-  UNUSED(user_data);
   UNUSED(origin);
   UNUSED(direction);
+
+  struct zns_bounded_nameplate *self = user_data;
+  self->hovering = true;
+
+  zna_bounded_commit(
+      self->bounded->appearance, ZNA_BOUNDED_DAMAGE_NAMEPLATE_TEXTURE);
+
   return true;
 }
 
 static bool
 zns_bounded_nameplate_node_ray_leave(void *user_data)
 {
-  UNUSED(user_data);
+  struct zns_bounded_nameplate *self = user_data;
+  self->hovering = false;
+
+  zna_bounded_commit(
+      self->bounded->appearance, ZNA_BOUNDED_DAMAGE_NAMEPLATE_TEXTURE);
+
   return true;
 }
 
@@ -148,6 +160,7 @@ zns_bounded_nameplate_create(struct zns_bounded *bounded)
   self->bounded = bounded;
   self->geometry.width = 0.29;
   self->geometry.height = 0.03;
+  self->hovering = false;
 
   return self;
 
