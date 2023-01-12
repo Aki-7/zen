@@ -1,5 +1,6 @@
 #include "zen/screen/output.h"
 
+#include <GL/glew.h>
 #include <math.h>
 #include <pixman.h>
 #include <wlr/render/wlr_renderer.h>
@@ -72,6 +73,26 @@ zn_output_handle_wlr_output_destroy(struct wl_listener *listener, void *data)
 }
 
 static void
+capture(struct zn_output *self)
+{
+  int32_t width = self->wlr_output->width;
+  int32_t height = self->wlr_output->height;
+  glReadPixels(0, 0, width, height, GL_RGBA, GL_UNSIGNED_BYTE, self->buffer);
+}
+
+static int
+zn_output_handle(void *data)
+{
+  struct zn_output *self = data;
+  int32_t width = self->wlr_output->width;
+  int32_t height = self->wlr_output->height;
+  fwrite(self->buffer, 4 * width * height, 1, self->ffmpeg);
+  fflush(self->ffmpeg);
+  wl_event_source_timer_update(self->second_timer_source, 17);
+  return 0;
+}
+
+static void
 zn_output_handle_damage_frame(struct wl_listener *listener, void *data)
 {
   UNUSED(data);
@@ -93,6 +114,8 @@ zn_output_handle_damage_frame(struct wl_listener *listener, void *data)
   if (!wlr_output_damage_attach_render(self->damage, &needs_frame, &damage)) {
     goto damage_finish;
   }
+
+  capture(self);
 
   if (needs_frame) {
     wlr_renderer_begin(
@@ -148,6 +171,28 @@ zn_output_create(struct wlr_output *wlr_output)
   if (wlr_output_commit(self->wlr_output) == false) {
     zn_error("Failed to set output mode");
     goto err_damage;
+  }
+
+  zn_warn("%d x %d", self->wlr_output->width, self->wlr_output->height);
+  const char *cmd =
+      "ffmpeg -r 60 -f rawvideo -pix_fmt rgba -s 1920x1080 -i - "
+      "-threads 0 -preset fast -y -pix_fmt yuv420p -crf 21 "
+      "output.mp4";
+  self->ffmpeg = popen(cmd, "w");
+  if (self->ffmpeg == 0) {
+    zn_error("Failed to popen: %s", strerror(errno));
+  }
+
+  self->second_timer_source = wl_event_loop_add_timer(
+      wl_display_get_event_loop(self->wlr_output->display), zn_output_handle,
+      self);
+
+  wl_event_source_timer_update(self->second_timer_source, 17);
+
+  {
+    int32_t width = self->wlr_output->width;
+    int32_t height = self->wlr_output->height;
+    self->buffer = malloc(width * height * 4);
   }
 
   self->screen = zn_screen_create(&screen_implementation, self);

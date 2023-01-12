@@ -1,6 +1,7 @@
 #include "zns/board-nameplate.h"
 
 #include <cglm/affine.h>
+#include <linux/input.h>
 #include <zen-common.h>
 #include <zgnr/intersection.h>
 
