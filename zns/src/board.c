@@ -204,6 +204,7 @@ zns_board_create(struct zn_board *zn_board)
     zn_error("Failed to create zns_node");
     goto err_free;
   }
+  self->node->is_board = true;
 
   self->nameplate = zns_board_nameplate_create(self);
   if (self->nameplate == NULL) {

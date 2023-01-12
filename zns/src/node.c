@@ -107,6 +107,7 @@ zns_node_create(struct zns_node *parent, void *user_data,
   }
   self->user_data = user_data;
   self->implementation = implementation;
+  self->is_board = false;
 
   wl_signal_init(&self->events.destroy);
 

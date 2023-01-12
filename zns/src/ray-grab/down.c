@@ -38,6 +38,12 @@ zns_down_ray_grab_motion_relative(struct zn_ray_grab *grab_base, vec3 origin,
   node = zns_node_ray_cast(server->shell->root, self->base.ray->origin,
       self->base.ray->direction, identity, &distance);
 
+  if (node && self->node->is_board && node->is_board) {
+    wl_list_remove(&self->node_destroy_listener.link);
+    wl_signal_add(&node->events.destroy, &self->node_destroy_listener);
+    self->node = node;
+  }
+
   if (node == self->node) zn_ray_set_length(self->base.ray, distance);
 
   zna_ray_commit(self->base.ray->appearance);

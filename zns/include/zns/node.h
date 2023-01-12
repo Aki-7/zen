@@ -62,6 +62,8 @@ struct zns_node {
     struct wl_signal destroy;  // (NULL)
   } events;
 
+  bool is_board;
+
   mat4 transform;  // translation and rotation only
 };
 
