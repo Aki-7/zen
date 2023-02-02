@@ -1,10 +1,13 @@
 #include "zen/scene.h"
 
+#include <linux/input-event-codes.h>
 #include <linux/input.h>
+#include <wayland-server-core.h>
 #include <zen-common.h>
 
 #include "zen/board.h"
 #include "zen/cursor.h"
+#include "zen/input/input-manager.h"
 #include "zen/ray.h"
 #include "zen/screen-layout.h"
 #include "zen/screen.h"
@@ -76,6 +79,26 @@ zn_scene_create_new_board(struct zn_scene *self)
   wl_signal_emit(&self->events.new_board, board);
 
   return board;
+}
+
+static void
+zn_scene_handle_add_board_binding(uint32_t time_msec, uint32_t key, void *data)
+{
+  UNUSED(time_msec);
+  UNUSED(key);
+  struct zn_scene *self = data;
+  struct zn_screen *screen = NULL;
+  struct zn_board *current_board = self->cursor->board;
+
+  if (current_board) {
+    screen = current_board->screen;
+  }
+
+  if (screen == NULL) return;
+
+  struct zn_board *board = zn_scene_create_new_board(self);
+  zn_board_set_screen(board, screen);
+  wl_signal_emit(&self->events.board_mapped_to_screen, board);
 }
 
 void
@@ -214,6 +237,10 @@ zn_scene_setup_keybindings(struct zn_scene *self)
   zn_input_manager_add_key_binding(server->input_manager, KEY_LEFT,
       WLR_MODIFIER_SHIFT | WLR_MODIFIER_LOGO,
       zn_scene_handle_switch_board_binding, self);
+
+  zn_input_manager_add_key_binding(server->input_manager, KEY_N,
+      WLR_MODIFIER_SHIFT | WLR_MODIFIER_LOGO, zn_scene_handle_add_board_binding,
+      self);
 }
 
 struct zn_scene *
