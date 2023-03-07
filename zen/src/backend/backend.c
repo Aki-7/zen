@@ -4,6 +4,7 @@
 #include <wayland-util.h>
 #include <wlr/backend.h>
 #include <wlr/render/allocator.h>
+#include <wlr/types/wlr_drm_lease_v1.h>
 #include <wlr/types/wlr_input_device.h>
 #include <wlr/types/wlr_output.h>
 
@@ -95,8 +96,14 @@ zn_default_backend_handle_new_output(struct wl_listener *listener, void *data)
       wlr_output->name, wlr_output->non_desktop);
 
   if (wlr_output->non_desktop) {
-    zn_debug("Skip non-desktop output");
-    // TODO(@Aki-7): DRM lease support
+    if (self->drm_lease_manager) {
+      wlr_drm_lease_v1_manager_offer_output(
+          self->drm_lease_manager, wlr_output);
+      zn_debug("Offer the output for DRM lease");
+    } else {
+      zn_debug("Skip non-desktop output");
+    }
+
     return;
   }
 
@@ -113,6 +120,19 @@ zn_default_backend_handle_new_output(struct wl_listener *listener, void *data)
   }
 
   wl_signal_emit(&self->base.events.new_screen, output->screen);
+}
+
+static void
+zn_default_backend_handle_drm_lease_request(
+    struct wl_listener *listener UNUSED, void *data)
+{
+  zn_warn("got drm_lease_request");
+  struct wlr_drm_lease_request_v1 *request = data;
+  struct wlr_drm_lease_v1 *lease = wlr_drm_lease_request_v1_grant(request);
+  if (!lease) {
+    zn_warn("Failed to grant lease request");
+    wlr_drm_lease_request_v1_reject(request);
+  }
 }
 
 static struct wlr_texture *
@@ -205,6 +225,13 @@ zn_default_backend_create(struct wl_display *display, struct zn_seat *zn_seat)
     goto err_wlr_renderer;
   }
 
+  self->drm_lease_manager =
+      wlr_drm_lease_v1_manager_create(display, self->wlr_backend);
+  if (self->drm_lease_manager == NULL) {
+    zn_warn("Failed to create a drm_lease_manager");
+    zn_warn("Wired VR HMD is not available");
+  }
+
   self->compositor = zn_compositor_create(display, self->wlr_renderer);
   if (self->compositor == NULL) {
     zn_error("Failed to create zn_compositor");
@@ -220,6 +247,15 @@ zn_default_backend_create(struct wl_display *display, struct zn_seat *zn_seat)
   self->new_input_listener.notify = zn_default_backend_handle_new_input;
   wl_signal_add(
       &self->wlr_backend->events.new_input, &self->new_input_listener);
+
+  if (self->drm_lease_manager) {
+    self->drm_lease_request_listener.notify =
+        zn_default_backend_handle_drm_lease_request;
+    wl_signal_add(&self->drm_lease_manager->events.request,
+        &self->drm_lease_request_listener);
+  } else {
+    wl_list_init(&self->drm_lease_request_listener.link);
+  }
 
   return &self->base;
 
@@ -244,6 +280,7 @@ zn_default_backend_destroy(struct zn_default_backend *self)
 {
   zn_signal_emit_mutable(&self->base.events.destroy, NULL);
 
+  wl_list_remove(&self->drm_lease_request_listener.link);
   wl_list_remove(&self->new_input_listener.link);
   wl_list_remove(&self->new_output_listener.link);
   zn_compositor_destroy(self->compositor);

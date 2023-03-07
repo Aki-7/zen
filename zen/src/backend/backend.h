@@ -16,12 +16,17 @@ struct zn_default_backend {
   struct wlr_renderer *wlr_renderer;    // @nonnull, @owning
   struct wlr_allocator *wlr_allocator;  // @nonnull, @owning
 
+  // drm_lease_manager will be automatically destroyed when wl_display is
+  // destroyed
+  struct wlr_drm_lease_v1_manager *drm_lease_manager;  // @nullable, @owning
+
   struct zn_compositor *compositor;  // @nonnull, @owning
 
   struct wl_list input_device_list;  // zn_input_device_base::link
 
   struct wl_listener new_input_listener;
   struct wl_listener new_output_listener;
+  struct wl_listener drm_lease_request_listener;
 };
 
 struct zn_default_backend *zn_default_backend_get(struct zn_backend *base);
