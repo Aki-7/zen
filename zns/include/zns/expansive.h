@@ -10,6 +10,10 @@ struct zns_expansive {
   struct zns_node *node;
 
   struct wl_listener zwnr_expansive_destroy_listener;
+
+  struct {
+    struct wl_signal destroy;
+  } events;
 };
 
 struct zns_expansive *zns_expansive_create(

@@ -2,6 +2,7 @@
 
 #include <cglm/quat.h>
 #include <float.h>
+#include <signal.h>
 #include <zen-common.h>
 #include <zwnr/bounded.h>
 
@@ -154,7 +155,19 @@ zn_shell_handle_new_expansive(struct wl_listener *listener, void *data)
 
   struct zwnr_expansive *zwnr_expansive = data;
 
-  (void)zns_expansive_create(zwnr_expansive);
+  if (self->space) {
+    struct wl_client *client = wl_resource_get_client(
+        self->space->zwnr_expansive->virtual_object->resource);
+    pid_t pid;
+    wl_client_get_credentials(client, &pid, NULL, NULL);
+
+    kill(pid, SIGTERM);
+
+    wl_list_remove(&self->space_destroy_listener.link);
+  }
+
+  self->space = zns_expansive_create(zwnr_expansive);
+  wl_signal_add(&self->space->events.destroy, &self->space_destroy_listener);
 }
 
 static void
@@ -179,6 +192,22 @@ zn_shell_handle_focus_node_destroy(struct wl_listener *listener, void *data)
   zn_shell_set_ray_focus_node(self, NULL);
 }
 
+static void
+zn_shell_handle_space_destroy(struct wl_listener *listener, void *data)
+{
+  struct zns_expansive *space = data;
+  struct zn_shell *self =
+      zn_container_of(listener, self, space_destroy_listener);
+  struct zn_server *server = zn_server_get_singleton();
+
+  if (self->space == space) {
+    self->space = NULL;
+    zn_launch_command(server->config->space_default_app);
+    wl_list_remove(&self->space_destroy_listener.link);
+    wl_list_init(&self->space_destroy_listener.link);
+  }
+}
+
 void
 zn_shell_rearrange_board(struct zn_shell *self)
 {
@@ -201,6 +230,8 @@ zn_shell_create(struct wl_display *display, struct zn_scene *scene)
     zn_error("Failed to allocate memory");
     goto err;
   }
+
+  self->space = NULL;
 
   self->zwnr_shell = zwnr_shell_create(display);
   if (self->zwnr_shell == NULL) {
@@ -244,6 +275,9 @@ zn_shell_create(struct wl_display *display, struct zn_scene *scene)
       zn_shell_handle_focus_node_destroy;
   wl_list_init(&self->ray_focus_node_destroy_listener.link);
 
+  self->space_destroy_listener.notify = zn_shell_handle_space_destroy;
+  wl_list_init(&self->space_destroy_listener.link);
+
   return self;
 
 err_seat_capsule:
@@ -268,6 +302,7 @@ zn_shell_destroy(struct zn_shell *self)
   wl_list_remove(&self->new_bounded_listener.link);
   wl_list_remove(&self->display_system_changed_listener.link);
   wl_list_remove(&self->ray_focus_node_destroy_listener.link);
+  wl_list_remove(&self->space_destroy_listener.link);
   zns_node_destroy(self->root);
   zns_seat_capsule_destroy(self->seat_capsule);
   zwnr_shell_destroy(self->zwnr_shell);

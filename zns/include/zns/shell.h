@@ -8,6 +8,7 @@
 
 struct zns_bounded;
 struct zns_seat_capsule;
+struct zns_expansive;
 
 struct zn_shell {
   struct zwnr_shell *zwnr_shell;
@@ -18,6 +19,8 @@ struct zn_shell {
 
   struct zns_seat_capsule *seat_capsule;
 
+  struct zns_expansive *space;
+
   struct zns_default_ray_grab default_grab;
 
   struct wl_listener new_bounded_listener;
@@ -25,6 +28,7 @@ struct zn_shell {
   struct wl_listener new_board_listener;
   struct wl_listener display_system_changed_listener;
   struct wl_listener ray_focus_node_destroy_listener;
+  struct wl_listener space_destroy_listener;
 };
 
 /**

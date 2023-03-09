@@ -93,16 +93,11 @@ on_signal_child(int signal_number, void *data)
   int status;
   UNUSED(data);
   UNUSED(signal_number);
-  struct zn_server *server = zn_server_get_singleton();
 
   while ((pid = waitpid(-1, &status, WNOHANG)) > 0) {
     if (startup_command_pid != -1 && pid == startup_command_pid) {
       zn_debug("Startup command exited");
       zn_terminate(EXIT_SUCCESS);
-    }
-    if (pid == server->default_space_app_pid) {
-      zn_error("Default space app exited");
-      zn_terminate(EXIT_FAILURE);
     }
   }
 
@@ -118,7 +113,7 @@ ulimit_fd_count(void)
   int ret;
   getrlimit(RLIMIT_NOFILE, &limit);
 
-  limit.rlim_cur = ZN_MIN(limit.rlim_max, 4096);
+  limit.rlim_cur = ZN_MIN(limit.rlim_max, 4096 * 16);
 
   ret = setrlimit(RLIMIT_NOFILE, &limit);
   if (ret == 0) {

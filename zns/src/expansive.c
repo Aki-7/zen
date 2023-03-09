@@ -210,6 +210,8 @@ zns_expansive_create(struct zwnr_expansive *zwnr_expansive)
   wl_signal_add(
       &zwnr_expansive->events.destroy, &self->zwnr_expansive_destroy_listener);
 
+  wl_signal_init(&self->events.destroy);
+
   return self;
 
 err_free:
@@ -222,7 +224,10 @@ err:
 static void
 zns_expansive_destroy(struct zns_expansive *self)
 {
+  wl_signal_emit(&self->events.destroy, self);
+
   wl_list_remove(&self->zwnr_expansive_destroy_listener.link);
+  wl_list_remove(&self->events.destroy.listener_list);
   zns_node_destroy(self->node);
   free(self);
 }
