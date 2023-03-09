@@ -135,6 +135,7 @@ subdir('common')
 subdir('zen-wlr-glew-renderer')
 subdir('zen')
 subdir('desktop')
+subdir('desktop-bar')
 
 executable(
   'zen-desktop',
