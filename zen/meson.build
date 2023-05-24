@@ -1,7 +1,6 @@
 _zen_srcs = [
   'board.c',
   'cursor.c',
-  'data-device-manager.c',
   'peer.c',
   'ray.c',
   'remote.c',
@@ -14,6 +13,7 @@ _zen_srcs = [
   'virtual-object.c',
 
   'wlr/box.c',
+  'wlr/data-device-manager.c',
   'wlr/render/egl.c',
   'wlr/render/pixel_format.c',
   'wlr/render/renderer.c',

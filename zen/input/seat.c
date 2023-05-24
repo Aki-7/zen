@@ -7,6 +7,7 @@
 #include "zen/cursor.h"
 #include "zen/input/input-device.h"
 #include "zen/server.h"
+#include "zen/wlr/data-device-manager.h"
 
 static void
 zn_seat_handle_request_set_cursor(struct wl_listener *listener, void *data)
@@ -85,8 +86,14 @@ zn_seat_create(struct wl_display *display, const char *seat_name)
 
   self->zwnr_seat = zwnr_seat_create(display);
   if (self->zwnr_seat == NULL) {
-    zn_error("Failed to creat zwnr_seat");
+    zn_error("Failed to create zwnr_seat");
     goto err_wlr_seat;
+  }
+
+  self->wlr_data_device_manager = zn_wlr_data_device_manager_create(display);
+  if (self->wlr_data_device_manager == NULL) {
+    zn_error("Failed to create zn_wlr_data_device_manager");
+    goto err_zwnr_seat;
   }
 
   self->request_set_cursor_listener.notify = zn_seat_handle_request_set_cursor;
@@ -97,6 +104,9 @@ zn_seat_create(struct wl_display *display, const char *seat_name)
   wl_signal_init(&self->events.destroy);
 
   return self;
+
+err_zwnr_seat:
+  zwnr_seat_destroy(self->zwnr_seat);
 
 err_wlr_seat:
   wlr_seat_destroy(self->wlr_seat);
@@ -115,6 +125,7 @@ zn_seat_destroy(struct zn_seat *self)
 
   wl_list_remove(&self->request_set_cursor_listener.link);
   wl_list_remove(&self->devices);
+  zn_wlr_data_device_manager_destroy(self->wlr_data_device_manager);
   zwnr_seat_destroy(self->zwnr_seat);
   wlr_seat_destroy(self->wlr_seat);
   free(self);

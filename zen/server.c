@@ -254,12 +254,6 @@ zn_server_create(struct wl_display *display)
     goto err_shell;
   }
 
-  self->data_device_manager = zn_data_device_manager_create(self->display);
-  if (self->data_device_manager == NULL) {
-    zn_error("Failed to create data device manager");
-    goto err_input_manager;
-  }
-
   zn_scene_setup_keybindings(self->scene);
   zna_system_setup_keybindings(self->appearance_system);
 
@@ -279,9 +273,6 @@ zn_server_create(struct wl_display *display)
   zwnr_backend_activate(self->zwnr_backend);
 
   return self;
-
-err_input_manager:
-  zn_input_manager_destroy(self->input_manager);
 
 err_shell:
   zn_shell_destroy(self->shell);
@@ -336,7 +327,6 @@ zn_server_destroy_resources(struct zn_server *self)
 void
 zn_server_destroy(struct zn_server *self)
 {
-  zn_data_device_manager_destroy(self->data_device_manager);
   zn_input_manager_destroy(self->input_manager);
   zn_shell_destroy(self->shell);
   free(self->socket);

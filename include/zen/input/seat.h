@@ -13,6 +13,8 @@ struct zn_seat {
   struct zwnr_seat *zwnr_seat;
   struct wl_list devices;  // zn_input_device::link
 
+  struct zn_wlr_data_device_manager *wlr_data_device_manager;
+
   struct wl_listener request_set_cursor_listener;
 
   uint32_t pressing_button_count;

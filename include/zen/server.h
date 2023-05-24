@@ -8,7 +8,6 @@
 
 #include "zen/appearance/system.h"
 #include "zen/config/config.h"
-#include "zen/data-device-manager.h"
 #include "zen/input/input-manager.h"
 #include "zen/remote.h"
 #include "zen/scene.h"
@@ -30,7 +29,6 @@ struct zn_server {
 
   struct zn_screen_compositor *screen_compositor;
 
-  struct zn_data_device_manager *data_device_manager;
   struct zn_input_manager *input_manager;
   struct zn_remote *remote;
   struct zna_system *appearance_system;
