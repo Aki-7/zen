@@ -9,8 +9,11 @@
 #include "zen/board.h"
 #include "zen/cursor.h"
 #include "zen/scene.h"
+#include "zen/screen/cursor-grab/drag.h"
 #include "zen/server.h"
 #include "zen/virtual-object.h"
+#include "zen/wlr/data-device-manager.h"
+#include "zen/wlr/data-source.h"
 #include "zns/board.h"
 #include "zns/bounded.h"
 #include "zns/expansive.h"
@@ -208,6 +211,24 @@ zn_shell_handle_space_destroy(struct wl_listener *listener, void *data)
   }
 }
 
+static void
+zn_shell_handle_wl_request_start_drag(struct wl_listener *listener, void *data)
+{
+  struct zn_shell *self =
+      zn_container_of(listener, self, wl_request_start_drag_listener);
+  struct zn_wlr_data_device_manager_start_drag_event *event = data;
+  struct zn_server *server = zn_server_get_singleton();
+  struct zn_data_source *source = NULL;
+
+  if (event->data_source != NULL) {
+    source = event->data_source->zn_data_source;
+  }
+
+  UNUSED(self);
+
+  zn_drag_cursor_grab_start(server->scene->cursor, source, event->client);
+}
+
 void
 zn_shell_rearrange_board(struct zn_shell *self)
 {
@@ -278,6 +299,12 @@ zn_shell_create(struct wl_display *display, struct zn_scene *scene)
   self->space_destroy_listener.notify = zn_shell_handle_space_destroy;
   wl_list_init(&self->space_destroy_listener.link);
 
+  self->wl_request_start_drag_listener.notify =
+      zn_shell_handle_wl_request_start_drag;
+  wl_signal_add(&server->input_manager->seat->wlr_data_device_manager->events
+                     .request_start_drag,
+      &self->wl_request_start_drag_listener);
+
   return self;
 
 err_seat_capsule:
@@ -303,6 +330,7 @@ zn_shell_destroy(struct zn_shell *self)
   wl_list_remove(&self->display_system_changed_listener.link);
   wl_list_remove(&self->ray_focus_node_destroy_listener.link);
   wl_list_remove(&self->space_destroy_listener.link);
+  wl_list_remove(&self->wl_request_start_drag_listener.link);
   zns_node_destroy(self->root);
   zns_seat_capsule_destroy(self->seat_capsule);
   zwnr_shell_destroy(self->zwnr_shell);

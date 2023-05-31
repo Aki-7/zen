@@ -1,6 +1,7 @@
 _zen_srcs = [
   'board.c',
   'cursor.c',
+  'data-source.c',
   'peer.c',
   'ray.c',
   'remote.c',
@@ -13,7 +14,10 @@ _zen_srcs = [
   'virtual-object.c',
 
   'wlr/box.c',
+  'wlr/data-device.c',
   'wlr/data-device-manager.c',
+  'wlr/data-offer.c',
+  'wlr/data-source.c',
   'wlr/render/egl.c',
   'wlr/render/pixel_format.c',
   'wlr/render/renderer.c',
@@ -30,6 +34,7 @@ _zen_srcs = [
   'screen/xdg-toplevel.c',
   'screen/cursor-grab/default.c',
   'screen/cursor-grab/down.c',
+  'screen/cursor-grab/drag.c',
   'screen/cursor-grab/move.c',
   'screen/cursor-grab/resize.c',
 

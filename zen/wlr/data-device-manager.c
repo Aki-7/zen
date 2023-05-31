@@ -3,24 +3,28 @@
 #include <wayland-server-protocol.h>
 
 #include "zen-common.h"
+#include "zen/wlr/data-device.h"
+#include "zen/wlr/data-source.h"
 
 static void
 zn_wlr_data_device_manager_protocol_create_data_source(
     struct wl_client *client, struct wl_resource *resource, uint32_t id)
 {
-  UNUSED(client);
   UNUSED(resource);
-  UNUSED(id);
+  zn_wlr_data_source_create(client, id);
 }
 
 static void
 zn_wlr_data_device_manager_protocol_get_data_device(struct wl_client *client,
     struct wl_resource *resource, uint32_t id, struct wl_resource *seat)
 {
-  UNUSED(client);
-  UNUSED(resource);
-  UNUSED(id);
   UNUSED(seat);
+  struct zn_wlr_data_device_manager *self = wl_resource_get_user_data(resource);
+
+  struct zn_wlr_data_device *data_device =
+      zn_wlr_data_device_create(client, id, self);
+
+  wl_list_insert(&self->data_device_list, &data_device->link);
 }
 
 static const struct wl_data_device_manager_interface implementation = {
@@ -46,6 +50,14 @@ zn_wlr_data_device_manager_bind(
   wl_resource_set_implementation(resource, &implementation, self, NULL);
 }
 
+void
+zn_wlr_data_device_manager_notify_request_start_drag(
+    struct zn_wlr_data_device_manager *self,
+    struct zn_wlr_data_device_manager_start_drag_event *event)
+{
+  wl_signal_emit(&self->events.request_start_drag, event);
+}
+
 struct zn_wlr_data_device_manager *
 zn_wlr_data_device_manager_create(struct wl_display *display)
 {
@@ -62,6 +74,9 @@ zn_wlr_data_device_manager_create(struct wl_display *display)
     goto err_free;
   }
 
+  wl_list_init(&self->data_device_list);
+  wl_signal_init(&self->events.request_start_drag);
+
   return self;
 
 err_free:
@@ -74,6 +89,8 @@ err:
 void
 zn_wlr_data_device_manager_destroy(struct zn_wlr_data_device_manager *self)
 {
+  wl_list_remove(&self->events.request_start_drag.listener_list);
+  wl_list_remove(&self->data_device_list);
   wl_global_destroy(self->global);
   free(self);
 }

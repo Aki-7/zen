@@ -237,22 +237,22 @@ zn_server_create(struct wl_display *display)
   zn_debug("WAYLAND_DISPLAY=%s", self->socket);
   zn_debug("XDG_RUNTIME_DIR=%s", xdg);
 
+  self->input_manager = zn_input_manager_create(self->display);
+  if (self->input_manager == NULL) {
+    zn_error("Failed to create input manager");
+    goto err_socket;
+  }
+
   self->shell = zn_shell_create(self->display, self->scene);
   if (self->shell == NULL) {
     zn_error("Failed to create zn_shell");
-    goto err_socket;
+    goto err_input_manager;
   }
 
   zn_scene_initialize_boards(self->scene, self->config->board_initial_count);
 
   zn_ray_set_default_grab(
       self->scene->ray, zn_shell_get_default_grab(self->shell));
-
-  self->input_manager = zn_input_manager_create(self->display);
-  if (self->input_manager == NULL) {
-    zn_error("Failed to create input manager");
-    goto err_shell;
-  }
 
   zn_scene_setup_keybindings(self->scene);
   zna_system_setup_keybindings(self->appearance_system);
@@ -274,8 +274,8 @@ zn_server_create(struct wl_display *display)
 
   return self;
 
-err_shell:
-  zn_shell_destroy(self->shell);
+err_input_manager:
+  zn_input_manager_destroy(self->input_manager);
 
 err_socket:
   free(self->socket);

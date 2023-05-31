@@ -29,6 +29,7 @@ struct zn_shell {
   struct wl_listener display_system_changed_listener;
   struct wl_listener ray_focus_node_destroy_listener;
   struct wl_listener space_destroy_listener;
+  struct wl_listener wl_request_start_drag_listener;
 };
 
 /**
