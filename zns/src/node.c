@@ -86,6 +86,46 @@ zns_node_ray_frame(struct zns_node *self)
   }
 }
 
+void
+zns_node_data_device_drop(struct zns_node *self)
+{
+  if (!self->implementation->data_device_drop(self->user_data) &&
+      self->parent) {
+    zns_node_data_device_drop(self);
+  }
+}
+
+void
+zns_node_data_device_enter(struct zns_node *self, vec3 origin, vec3 direction,
+    struct zn_data_source *source)
+{
+  if (!self->implementation->data_device_enter(
+          self->user_data, origin, direction, source) &&
+      self->parent) {
+    zns_node_data_device_enter(self->parent, origin, direction, source);
+  }
+}
+
+void
+zns_node_data_device_motion(
+    struct zns_node *self, vec3 origin, vec3 direction, uint32_t time_msec)
+{
+  if (!self->implementation->data_device_motion(
+          self->user_data, origin, direction, time_msec) &&
+      self->parent) {
+    zns_node_data_device_motion(self->parent, origin, direction, time_msec);
+  }
+}
+
+void
+zns_node_data_device_leave(struct zns_node *self)
+{
+  if (!self->implementation->data_device_leave(self->user_data) &&
+      self->parent) {
+    zns_node_data_device_leave(self->parent);
+  }
+}
+
 struct zns_node *
 zns_node_create(struct zns_node *parent, void *user_data,
     const struct zns_node_interface *implementation, enum zns_node_type type)

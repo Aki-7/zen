@@ -6,6 +6,9 @@
 #include <zen-common.h>
 #include <zwnr/intersection.h>
 
+#include "zen/data-source.h"
+#include "zen/ray-data-device.h"
+#include "zen/ray-data-offer.h"
 #include "zen/server.h"
 #include "zen/virtual-object.h"
 #include "zns/appearance/bounded.h"
@@ -180,6 +183,124 @@ zns_bounded_node_ray_frame(void *user_data)
   return true;
 }
 
+static bool
+zns_bounded_node_data_device_drop(void *user_data)
+{
+  struct zns_bounded *self = user_data;
+  struct wl_client *client =
+      wl_resource_get_client(self->zwnr_bounded->virtual_object->resource);
+  struct zn_server *server = zn_server_get_singleton();
+
+  struct wl_resource *data_device_resource;
+  wl_resource_for_each (data_device_resource,
+      &server->input_manager->seat->ray_data_device->resource_list) {
+    if (wl_resource_get_client(data_device_resource) != client) continue;
+
+    zwn_data_device_send_drop(data_device_resource);
+  }
+
+  return true;
+}
+
+static bool
+zns_bounded_node_data_device_enter(
+    void *user_data, vec3 origin, vec3 direction, struct zn_data_source *source)
+{
+  struct zns_bounded *self = user_data;
+  struct wl_client *client =
+      wl_resource_get_client(self->zwnr_bounded->virtual_object->resource);
+  struct zn_server *server = zn_server_get_singleton();
+  uint32_t serial = wl_display_next_serial(wl_client_get_display(client));
+
+  struct wl_array origin_array, direction_array;
+  zn_vec3_to_array(origin, &origin_array);
+  zn_vec3_to_array(direction, &direction_array);
+
+  struct wl_resource *data_device_resource;
+  wl_resource_for_each (data_device_resource,
+      &server->input_manager->seat->ray_data_device->resource_list) {
+    if (wl_resource_get_client(data_device_resource) != client) {
+      continue;
+    }
+
+    if (source) {
+      struct zn_ray_data_offer *offer =
+          zn_ray_data_offer_create(client, 0, source);
+
+      zwn_data_device_send_data_offer(data_device_resource, offer->resource);
+
+      char **p;
+      wl_array_for_each (p, &source->mime_types) {
+        zwn_data_offer_send_offer(offer->resource, *p);
+      }
+
+      zn_ray_data_offer_update_action(offer);
+
+      zwn_data_offer_send_source_actions(offer->resource, source->actions);
+
+      zwn_data_device_send_enter(data_device_resource, serial,
+          self->zwnr_bounded->virtual_object->resource, &origin_array,
+          &direction_array, offer->resource);
+    }
+  }
+
+  wl_array_release(&origin_array);
+  wl_array_release(&direction_array);
+
+  return true;
+}
+
+static bool
+zns_bounded_node_data_device_motion(
+    void *user_data, vec3 origin, vec3 direction, uint32_t time_msec)
+{
+  struct zns_bounded *self = user_data;
+  struct wl_client *client =
+      wl_resource_get_client(self->zwnr_bounded->virtual_object->resource);
+  struct zn_server *server = zn_server_get_singleton();
+
+  struct wl_array origin_array, direction_array;
+  zn_vec3_to_array(origin, &origin_array);
+  zn_vec3_to_array(direction, &direction_array);
+
+  struct wl_resource *data_device_resource;
+  wl_resource_for_each (data_device_resource,
+      &server->input_manager->seat->ray_data_device->resource_list) {
+    if (wl_resource_get_client(data_device_resource) != client) {
+      continue;
+    }
+
+    zwn_data_device_send_motion(
+        data_device_resource, time_msec, &origin_array, &direction_array);
+  }
+
+  wl_array_release(&origin_array);
+  wl_array_release(&direction_array);
+
+  return true;
+}
+
+static bool
+zns_bounded_node_data_device_leave(void *user_data)
+{
+  struct zns_bounded *self = user_data;
+  struct wl_client *client =
+      wl_resource_get_client(self->zwnr_bounded->virtual_object->resource);
+  struct zn_server *server = zn_server_get_singleton();
+
+  struct wl_resource *data_device_resource;
+  wl_resource_for_each (data_device_resource,
+      &server->input_manager->seat->ray_data_device->resource_list) {
+    if (wl_resource_get_client(data_device_resource) != client) {
+      continue;
+    }
+
+    zwn_data_device_send_leave(data_device_resource);
+  }
+
+  return true;
+}
+
 static const struct zns_node_interface node_implementation = {
     .ray_cast = zns_bounded_node_ray_cast,
     .ray_motion = zns_bounded_node_ray_motion,
@@ -188,6 +309,10 @@ static const struct zns_node_interface node_implementation = {
     .ray_button = zns_bounded_node_ray_button,
     .ray_axis = zns_bounded_node_ray_axis,
     .ray_frame = zns_bounded_node_ray_frame,
+    .data_device_drop = zns_bounded_node_data_device_drop,
+    .data_device_enter = zns_bounded_node_data_device_enter,
+    .data_device_motion = zns_bounded_node_data_device_motion,
+    .data_device_leave = zns_bounded_node_data_device_leave,
 };
 
 static void

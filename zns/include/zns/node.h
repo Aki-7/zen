@@ -5,6 +5,8 @@
 #include <wlr/types/wlr_pointer.h>
 #include <zwin-protocol.h>
 
+struct zn_data_source;
+
 enum zns_node_type {
   ZNS_NODE_ROOT,
   ZNS_NODE_BOUNDED,
@@ -56,6 +58,28 @@ struct zns_node_interface {
    * @return false to pass the event to the parent node
    */
   bool (*ray_frame)(void *user_data);
+
+  /**
+   * @return false to pass the event to the parent node
+   */
+  bool (*data_device_drop)(void *user_data);
+
+  /**
+   * @return false to pass the event to the parent node
+   */
+  bool (*data_device_enter)(void *user_data, vec3 origin, vec3 direction,
+      struct zn_data_source *source);
+
+  /**
+   * @return false to pass the event to the parent node
+   */
+  bool (*data_device_motion)(
+      void *user_data, vec3 origin, vec3 direction, uint32_t time_msec);
+
+  /**
+   * @return false to pass the event to the parent node
+   */
+  bool (*data_device_leave)(void *user_data);
 };
 
 struct zns_node {
@@ -99,6 +123,16 @@ void zns_node_ray_axis(struct zns_node *self, uint32_t time_msec,
     double delta, int32_t delta_discrete);
 
 void zns_node_ray_frame(struct zns_node *self);
+
+void zns_node_data_device_drop(struct zns_node *self);
+
+void zns_node_data_device_enter(struct zns_node *self, vec3 origin,
+    vec3 direction, struct zn_data_source *source);
+
+void zns_node_data_device_motion(
+    struct zns_node *self, vec3 origin, vec3 direction, uint32_t time_msec);
+
+void zns_node_data_device_leave(struct zns_node *self);
 
 /**
  * @param parent can be null only for root node

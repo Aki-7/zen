@@ -166,6 +166,46 @@ zns_bounded_nameplate_node_ray_frame(void *user_data)
   return true;
 }
 
+static bool
+zns_bounded_nameplate_node_data_device_drop(void *user_data)
+{
+  UNUSED(user_data);
+
+  return true;
+}
+
+static bool
+zns_bounded_nameplate_node_data_device_enter(
+    void *user_data, vec3 origin, vec3 direction, struct zn_data_source *source)
+{
+  UNUSED(user_data);
+  UNUSED(origin);
+  UNUSED(direction);
+  UNUSED(source);
+
+  return true;
+}
+
+static bool
+zns_bounded_nameplate_node_data_device_motion(
+    void *user_data, vec3 origin, vec3 direction, uint32_t time_msec)
+{
+  UNUSED(user_data);
+  UNUSED(origin);
+  UNUSED(direction);
+  UNUSED(time_msec);
+
+  return true;
+}
+
+static bool
+zns_bounded_nameplate_node_data_device_leave(void *user_data)
+{
+  UNUSED(user_data);
+
+  return true;
+}
+
 static const struct zns_node_interface node_implementation = {
     .ray_cast = zns_bounded_nameplate_node_ray_cast,
     .ray_motion = zns_bounded_nameplate_node_ray_motion,
@@ -174,6 +214,10 @@ static const struct zns_node_interface node_implementation = {
     .ray_button = zns_bounded_nameplate_node_ray_button,
     .ray_axis = zns_bounded_nameplate_node_ray_axis,
     .ray_frame = zns_bounded_nameplate_node_ray_frame,
+    .data_device_drop = zns_bounded_nameplate_node_data_device_drop,
+    .data_device_enter = zns_bounded_nameplate_node_data_device_enter,
+    .data_device_motion = zns_bounded_nameplate_node_data_device_motion,
+    .data_device_leave = zns_bounded_nameplate_node_data_device_leave,
 };
 
 void

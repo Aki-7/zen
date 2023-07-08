@@ -17,6 +17,7 @@
 #include "zns/board.h"
 #include "zns/bounded.h"
 #include "zns/expansive.h"
+#include "zns/ray-grab/drag.h"
 #include "zns/seat-capsule.h"
 
 #pragma GCC diagnostic push
@@ -67,6 +68,32 @@ zn_shell_root_ray_frame(void *user_data)
 {
   return true;
 }
+
+static bool
+zn_shell_root_data_device_drop(void *user_data)
+{
+  return true;
+}
+
+static bool
+zn_shell_root_data_device_enter(
+    void *user_data, vec3 origin, vec3 direction, struct zn_data_source *source)
+{
+  return true;
+}
+
+static bool
+zn_shell_root_data_device_motion(
+    void *user_data, vec3 origin, vec3 direction, uint32_t time_msec)
+{
+  return true;
+}
+
+static bool
+zn_shell_root_data_device_leave(void *user_data)
+{
+  return true;
+}
 #pragma GCC diagnostic pop
 
 static const struct zns_node_interface node_implementation = {
@@ -77,6 +104,10 @@ static const struct zns_node_interface node_implementation = {
     .ray_button = zn_shell_root_ray_button,
     .ray_axis = zn_shell_root_ray_axis,
     .ray_frame = zn_shell_root_ray_frame,
+    .data_device_drop = zn_shell_root_data_device_drop,
+    .data_device_enter = zn_shell_root_data_device_enter,
+    .data_device_motion = zn_shell_root_data_device_motion,
+    .data_device_leave = zn_shell_root_data_device_leave,
 };
 
 static void
@@ -227,6 +258,8 @@ zn_shell_handle_wl_request_start_drag(struct wl_listener *listener, void *data)
   UNUSED(self);
 
   zn_drag_cursor_grab_start(server->scene->cursor, source, event->client);
+
+  zns_drag_ray_grab_start(server->scene->ray, source, event->client);
 }
 
 void

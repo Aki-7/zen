@@ -67,7 +67,7 @@ zn_wlr_data_device_manager_create(struct wl_display *display)
     goto err;
   }
 
-  self->global = wl_global_create(display, &wl_data_device_manager_interface, 1,
+  self->global = wl_global_create(display, &wl_data_device_manager_interface, 3,
       self, zn_wlr_data_device_manager_bind);
   if (self->global == NULL) {
     zn_error("Failed to create wl_global");

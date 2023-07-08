@@ -6,6 +6,7 @@
 #include <zwnr/intersection.h>
 
 #include "zen/cursor.h"
+#include "zen/screen/cursor-grab/drag.h"
 #include "zen/server.h"
 #include "zns/ray-grab/board-move.h"
 #include "zns/shell.h"
@@ -164,6 +165,92 @@ zns_board_node_ray_frame(void *user_data)
   return true;
 }
 
+static bool
+zns_board_node_data_device_drop(void *user_data)
+{
+  UNUSED(user_data);
+
+  struct zn_server *server = zn_server_get_singleton();
+
+  if (server->scene->cursor->grab->impl ==
+      &zn_drag_cursor_grab_implementation) {
+    struct zn_drag_cursor_grab *drag_grab =
+        zn_container_of(server->scene->cursor->grab, drag_grab, base);
+    zn_drag_cursor_grab_drop(drag_grab);
+  }
+
+  return true;
+}
+
+static bool
+zns_board_node_data_device_enter(
+    void *user_data, vec3 origin, vec3 direction, struct zn_data_source *source)
+{
+  UNUSED(source);
+
+  struct zns_board *self = user_data;
+  struct zn_server *server = zn_server_get_singleton();
+  struct zn_cursor *cursor = server->scene->cursor;
+
+  float u, v;
+  double effective_width, effective_height;
+  double effective_x, effective_y;
+
+  (void)zns_board_ray_cast(self, origin, direction, &u, &v);
+
+  zn_board_get_effective_size(
+      self->zn_board, &effective_width, &effective_height);
+
+  effective_x = effective_width * u;
+  effective_y = effective_height * (1 - v);
+
+  cursor->grab->impl->enter(
+      cursor->grab, self->zn_board, effective_x, effective_y);
+
+  return true;
+}
+
+static bool
+zns_board_node_data_device_motion(
+    void *user_data, vec3 origin, vec3 direction, uint32_t time_msec)
+{
+  struct zns_board *self = user_data;
+  struct zn_server *server = zn_server_get_singleton();
+  struct zn_cursor *cursor = server->scene->cursor;
+
+  float u, v, distance;
+  double effective_width, effective_height;
+  double effective_x, effective_y;
+
+  distance = zns_board_ray_cast(self, origin, direction, &u, &v);
+
+  if (distance == FLT_MAX) return true;
+
+  zn_board_get_effective_size(
+      self->zn_board, &effective_width, &effective_height);
+
+  effective_x = effective_width * u;
+  effective_y = effective_height * (1 - v);
+
+  cursor->grab->impl->motion_absolute(
+      cursor->grab, self->zn_board, effective_x, effective_y, time_msec);
+
+  return true;
+}
+
+static bool
+zns_board_node_data_device_leave(void *user_data)
+{
+  UNUSED(user_data);
+
+  struct zn_server *server = zn_server_get_singleton();
+  struct zn_cursor *cursor = server->scene->cursor;
+
+  cursor->grab->impl->leave(cursor->grab);
+
+  return true;
+}
+
 static const struct zns_node_interface node_implementation = {
     .ray_cast = zns_board_node_ray_cast,
     .ray_motion = zns_board_node_ray_motion,
@@ -172,6 +259,10 @@ static const struct zns_node_interface node_implementation = {
     .ray_button = zns_board_node_ray_button,
     .ray_axis = zns_board_node_ray_axis,
     .ray_frame = zns_board_node_ray_frame,
+    .data_device_drop = zns_board_node_data_device_drop,
+    .data_device_enter = zns_board_node_data_device_enter,
+    .data_device_motion = zns_board_node_data_device_motion,
+    .data_device_leave = zns_board_node_data_device_leave,
 };
 
 static void

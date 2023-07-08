@@ -88,22 +88,9 @@ zn_drag_cursor_grab_set_focus(struct zn_drag_cursor_grab *self,
 }
 
 static void
-zn_drag_cursor_grab_handle_focus_destroy(
-    struct wl_listener *listener, void *data)
-{
-  UNUSED(data);
-  struct zn_drag_cursor_grab *self =
-      zn_container_of(listener, self, focus_destroy_listener);
-
-  zn_drag_cursor_grab_set_focus(self, NULL, 0, 0);
-}
-
-static void
 zn_drag_cursor_grab_send_movement(
     struct zn_drag_cursor_grab *self, uint32_t time_msec, bool no_motion)
 {
-  UNUSED(time_msec);
-  UNUSED(no_motion);
   struct zn_server *server = zn_server_get_singleton();
   struct zn_seat *seat = server->input_manager->seat;
   struct zn_cursor *cursor = self->base.cursor;
@@ -159,6 +146,31 @@ zn_drag_cursor_grab_motion_absolute(struct zn_cursor_grab *grab,
   zn_cursor_commit_appearance(grab->cursor);
 }
 
+void
+zn_drag_cursor_grab_drop(struct zn_drag_cursor_grab *self)
+{
+  struct zn_server *server = zn_server_get_singleton();
+  struct zn_seat *seat = server->input_manager->seat;
+
+  struct zn_wlr_data_device *data_device;
+  struct wl_client *focus_client = NULL;
+
+  if (self->focus) {
+    focus_client = wl_resource_get_client(self->focus->resource);
+  }
+
+  wl_list_for_each (
+      data_device, &seat->wlr_data_device_manager->data_device_list, link) {
+    if (focus_client != wl_resource_get_client(data_device->resource)) {
+      continue;
+    }
+
+    wl_data_device_send_drop(data_device->resource);
+  }
+
+  zn_drag_cursor_grab_set_focus(self, NULL, 0, 0);
+}
+
 static void
 zn_drag_cursor_grab_button(struct zn_cursor_grab *grab, uint32_t time_msec,
     uint32_t button, enum wlr_button_state state)
@@ -167,29 +179,11 @@ zn_drag_cursor_grab_button(struct zn_cursor_grab *grab, uint32_t time_msec,
   UNUSED(button);
 
   struct zn_drag_cursor_grab *self = zn_container_of(grab, self, base);
-  struct zn_server *server = zn_server_get_singleton();
-  struct zn_seat *seat = server->input_manager->seat;
 
   if (self->source != NULL && state == WLR_BUTTON_RELEASED) {
-    struct zn_wlr_data_device *data_device;
-    struct wl_client *focus_client = NULL;
-
-    if (self->focus) {
-      focus_client = wl_resource_get_client(self->focus->resource);
-    }
-
-    wl_list_for_each (
-        data_device, &seat->wlr_data_device_manager->data_device_list, link) {
-      if (focus_client != wl_resource_get_client(data_device->resource)) {
-        continue;
-      }
-
-      wl_data_device_send_drop(data_device->resource);
-    }
+    zn_drag_cursor_grab_drop(self);
 
     zn_data_source_dnd_drop_performed(self->source);
-
-    zn_drag_cursor_grab_set_focus(self, NULL, 0, 0);
   }
 
   if (state == WLR_BUTTON_RELEASED) {  // TODO: counter pressing cursor button
@@ -250,7 +244,7 @@ zn_drag_cursor_grab_cancel(struct zn_cursor_grab *grab)
   zn_drag_cursor_grab_destroy(self);
 }
 
-static const struct zn_cursor_grab_interface implementation = {
+const struct zn_cursor_grab_interface zn_drag_cursor_grab_implementation = {
     .motion_relative = zn_drag_cursor_grab_motion_relative,
     .motion_absolute = zn_drag_cursor_grab_motion_absolute,
     .button = zn_drag_cursor_grab_button,
@@ -261,6 +255,17 @@ static const struct zn_cursor_grab_interface implementation = {
     .rebase = zn_drag_cursor_grab_rebase,
     .cancel = zn_drag_cursor_grab_cancel,
 };
+
+static void
+zn_drag_cursor_grab_handle_focus_destroy(
+    struct wl_listener *listener, void *data)
+{
+  UNUSED(data);
+  struct zn_drag_cursor_grab *self =
+      zn_container_of(listener, self, focus_destroy_listener);
+
+  zn_drag_cursor_grab_set_focus(self, NULL, 0, 0);
+}
 
 static void
 zn_drag_cursor_grab_handle_source_destroy(
@@ -282,7 +287,7 @@ zn_drag_cursor_grab_create(
     goto err;
   }
 
-  self->base.impl = &implementation;
+  self->base.impl = &zn_drag_cursor_grab_implementation;
   self->source = source;
   self->client = client;
   self->focus = NULL;

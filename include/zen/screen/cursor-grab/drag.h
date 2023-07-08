@@ -14,5 +14,9 @@ struct zn_drag_cursor_grab {
   struct wl_listener source_destroy_listener;
 };
 
+extern const struct zn_cursor_grab_interface zn_drag_cursor_grab_implementation;
+
+void zn_drag_cursor_grab_drop(struct zn_drag_cursor_grab *self);
+
 void zn_drag_cursor_grab_start(struct zn_cursor *cursor,
     struct zn_data_source *source, struct wl_client *client);

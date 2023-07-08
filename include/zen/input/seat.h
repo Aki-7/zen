@@ -14,6 +14,7 @@ struct zn_seat {
   struct wl_list devices;  // zn_input_device::link
 
   struct zn_wlr_data_device_manager *wlr_data_device_manager;
+  struct zn_ray_data_device *ray_data_device;
 
   struct wl_listener request_set_cursor_listener;
 
